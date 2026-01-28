@@ -2,6 +2,9 @@ package handler
 
 import (
 	"context"
+	"net/http"
+	"encoding/json"
+	"log"
 
 	"github.com/TechBowl-japan/go-stations/model"
 	"github.com/TechBowl-japan/go-stations/service"
@@ -21,8 +24,11 @@ func NewTODOHandler(svc *service.TODOService) *TODOHandler {
 
 // Create handles the endpoint that creates the TODO.
 func (h *TODOHandler) Create(ctx context.Context, req *model.CreateTODORequest) (*model.CreateTODOResponse, error) {
-	_, _ = h.svc.CreateTODO(ctx, "", "")
-	return &model.CreateTODOResponse{}, nil
+	todo, nil := h.svc.CreateTODO(ctx, req.Subject, req.Description)
+
+	return &model.CreateTODOResponse{
+		TODO : *todo,
+	}, nil
 }
 
 // Read handles the endpoint that reads the TODOs.
@@ -41,4 +47,43 @@ func (h *TODOHandler) Update(ctx context.Context, req *model.UpdateTODORequest) 
 func (h *TODOHandler) Delete(ctx context.Context, req *model.DeleteTODORequest) (*model.DeleteTODOResponse, error) {
 	_ = h.svc.DeleteTODO(ctx, nil)
 	return &model.DeleteTODOResponse{}, nil
+}
+
+func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.CreateTODORequest
+	if err := json.NewDecoder(r.Body).Decode(&req);
+	err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Subject == "" {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}else{
+		todo, _ := h.svc.CreateTODO(r.Context(), req.Subject, req.Description)
+
+		w.Header().Set("Content-type", "application/json")
+
+		resp := model.CreateTODOResponse{
+			TODO : *todo,
+		}
+
+
+
+		if err := json.NewEncoder(w).Encode(resp);
+
+	    err != nil {
+			log.Println(err)
+		}
+
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"net/http"
 
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
@@ -52,5 +53,5 @@ func realMain() error {
 
 	// TODO: サーバーをlistenする
 
-	return nil
+	return http.ListenAndServe(port,mux)
 }
