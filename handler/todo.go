@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	"net/http"
 	"encoding/json"
 	"log"
+	"net/http"
 
 	"github.com/TechBowl-japan/go-stations/model"
 	"github.com/TechBowl-japan/go-stations/service"
@@ -27,7 +27,7 @@ func (h *TODOHandler) Create(ctx context.Context, req *model.CreateTODORequest) 
 	todo, nil := h.svc.CreateTODO(ctx, req.Subject, req.Description)
 
 	return &model.CreateTODOResponse{
-		TODO : *todo,
+		TODO: *todo,
 	}, nil
 }
 
@@ -51,39 +51,66 @@ func (h *TODOHandler) Delete(ctx context.Context, req *model.DeleteTODORequest) 
 
 func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
+	switch r.Method {
+	case http.MethodPost:
+		var req model.CreateTODORequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
 
+		if req.Subject == "" {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var req model.CreateTODORequest
-	if err := json.NewDecoder(r.Body).Decode(&req);
-	err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-
-	if req.Subject == "" {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}else{
 		todo, _ := h.svc.CreateTODO(r.Context(), req.Subject, req.Description)
 
 		w.Header().Set("Content-type", "application/json")
 
 		resp := model.CreateTODOResponse{
-			TODO : *todo,
+			TODO: *todo,
 		}
 
-
-
-		if err := json.NewEncoder(w).Encode(resp);
-
-	    err != nil {
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			log.Println(err)
 		}
 
+	case http.MethodPut:
+		var req model.UpdateTODORequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
+
+		if req.ID == 0 || req.Subject == "" {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
+
+		todo, err := h.svc.UpdateTODO(r.Context(), req.ID, req.Subject, req.Description)
+
+		if err != nil {
+			if _, ok := err.(*model.ErrNotFound); ok {
+				http.Error(w, "Not Found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-type", "application/json")
+
+		resp := model.UpdateTODOResponse{
+			TODO: *todo,
+		}
+
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			log.Println(err)
+		}
+
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
+
 }
