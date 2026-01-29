@@ -77,7 +77,43 @@ func (s *TODOService) UpdateTODO(ctx context.Context, id int64, subject, descrip
 		confirm = `SELECT subject, description, created_at, updated_at FROM todos WHERE id = ?`
 	)
 
-	return nil, nil
+	stmt,err := s.db.PrepareContext(ctx,update)
+	if err != nil {
+		return nil,err
+	}
+	defer stmt.Close()
+
+	result,err := stmt.ExecContext(ctx,subject,description,id)
+	if err != nil {
+		return nil,err
+	}
+
+	rowsAffected,err := result.RowsAffected()
+	if err != nil {
+		return nil,err
+	}
+
+	if rowsAffected == 0 {
+		return nil,&model.ErrNotFound{}
+	}
+
+	row := s.db.QueryRowContext(ctx,confirm,id)
+
+	todo := &model.TODO {
+		ID : id,
+	}
+
+	if err := row.Scan(
+		&todo.Subject,
+		&todo.Description,
+		&todo.CreatedAt,
+		&todo.UpdatedAt,
+	);
+	err != nil {
+		return nil,err
+	}
+
+	return todo, nil
 }
 
 // DeleteTODO deletes TODOs on DB by ids.
