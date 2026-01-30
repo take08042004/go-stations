@@ -26,35 +26,34 @@ func (s *TODOService) CreateTODO(ctx context.Context, subject, description strin
 		confirm = `SELECT subject, description, created_at, updated_at FROM todos WHERE id = ?`
 	)
 
-	stmt,err := s.db.PrepareContext(ctx,insert)
+	stmt, err := s.db.PrepareContext(ctx, insert)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	result,err := stmt.ExecContext(ctx,subject,description)
+	result, err := stmt.ExecContext(ctx, subject, description)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	id,err := result.LastInsertId()
+	id, err := result.LastInsertId()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	row := s.db.QueryRowContext(ctx,confirm,id)
+	row := s.db.QueryRowContext(ctx, confirm, id)
 
 	todo := &model.TODO{
-		ID : id,
+		ID: id,
 	}
 	if err := row.Scan(
 		&todo.Subject,
 		&todo.Description,
 		&todo.CreatedAt,
 		&todo.UpdatedAt,
-	);
-	err != nil {
-		return nil,err
+	); err != nil {
+		return nil, err
 	}
 
 	return todo, nil
@@ -67,7 +66,42 @@ func (s *TODOService) ReadTODO(ctx context.Context, prevID, size int64) ([]*mode
 		readWithID = `SELECT id, subject, description, created_at, updated_at FROM todos WHERE id < ? ORDER BY id DESC LIMIT ?`
 	)
 
-	return nil, nil
+	stmt, err := s.db.PrepareContext(ctx, read)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	var rows *sql.Rows
+	rows, err = stmt.QueryContext(ctx, size)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var todos []*model.TODO
+	for rows.Next() {
+		todo := &model.TODO{}
+		if err := rows.Scan(
+			&todo.ID,
+			&todo.Subject,
+			&todo.Description,
+			&todo.CreatedAt,
+			&todo.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		todos = append(todos, todo)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+
+
+	return todos, nil
 }
 
 // UpdateTODO updates the TODO on DB.
@@ -77,30 +111,30 @@ func (s *TODOService) UpdateTODO(ctx context.Context, id int64, subject, descrip
 		confirm = `SELECT subject, description, created_at, updated_at FROM todos WHERE id = ?`
 	)
 
-	stmt,err := s.db.PrepareContext(ctx,update)
+	stmt, err := s.db.PrepareContext(ctx, update)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	defer stmt.Close()
 
-	result,err := stmt.ExecContext(ctx,subject,description,id)
+	result, err := stmt.ExecContext(ctx, subject, description, id)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	rowsAffected,err := result.RowsAffected()
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	if rowsAffected == 0 {
-		return nil,&model.ErrNotFound{}
+		return nil, &model.ErrNotFound{}
 	}
 
-	row := s.db.QueryRowContext(ctx,confirm,id)
+	row := s.db.QueryRowContext(ctx, confirm, id)
 
-	todo := &model.TODO {
-		ID : id,
+	todo := &model.TODO{
+		ID: id,
 	}
 
 	if err := row.Scan(
@@ -108,9 +142,8 @@ func (s *TODOService) UpdateTODO(ctx context.Context, id int64, subject, descrip
 		&todo.Description,
 		&todo.CreatedAt,
 		&todo.UpdatedAt,
-	);
-	err != nil {
-		return nil,err
+	); err != nil {
+		return nil, err
 	}
 
 	return todo, nil
