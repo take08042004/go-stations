@@ -14,7 +14,6 @@ import (
 )
 
 func TestStation15(t *testing.T) {
-	t.Parallel()
 
 	todos := []*model.TODO{
 		{

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
+	"math"
 
 	"github.com/TechBowl-japan/go-stations/model"
 	"github.com/TechBowl-japan/go-stations/service"
@@ -108,6 +110,48 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			log.Println(err)
 		}
+
+	case http.MethodGet:
+		var prevID int64 = 0
+		var size int64 = math.MaxInt64
+		var err error
+
+		q := r.URL.Query()
+		prevIDStr := q.Get("prev_id")
+		sizeStr := q.Get("size")
+
+		if prevIDStr != "" {
+			prevID, err = strconv.ParseInt(prevIDStr, 10, 64)
+			if err != nil {
+				http.Error(w, "Bad Request", http.StatusBadRequest)
+				return
+			}
+		}
+
+		if sizeStr != "" {
+			size, err = strconv.ParseInt(sizeStr, 10, 64)
+			if err != nil {
+				http.Error(w, "Bad Request", http.StatusBadRequest)
+				return
+			}
+		}
+
+		todos, err := h.svc.ReadTODO(r.Context(), prevID,size)
+
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		resp := model.ReadTODOResponse{
+			TODOs: todos,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		w.WriteHeader(http.StatusOK)
+
+		_ = json.NewEncoder(w).Encode(resp)
 
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
