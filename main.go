@@ -53,7 +53,5 @@ func realMain() error {
 
 	// TODO: サーバーをlistenする
 
-	log.Println("server starting on", port)
-
 	return http.ListenAndServe(port,mux)
 }
