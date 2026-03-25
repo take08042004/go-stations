@@ -26,5 +26,20 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 
 	mux.Handle("/do-panic",safeHandler)
 
+	handler := http.HandlerFunc(SampleHandler)
+	wrapped := middleware.UserAgentMiddleWare(handler)
+
+	mux.Handle("/os", wrapped)
+
 	return mux
+}
+
+func SampleHandler(w http.ResponseWriter, r *http.Request) {
+	os, ok := r.Context().Value(middleware.OSKey).(string)
+
+	if !ok {
+		os = "unknown"
+	}
+
+	w.Write([]byte("Your OS is " + os))
 }
