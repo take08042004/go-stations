@@ -27,9 +27,19 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	mux.Handle("/do-panic",safeHandler)
 
 	handler := http.HandlerFunc(SampleHandler)
+
+	//middlewareチェーン
 	wrapped := middleware.UserAgentMiddleWare(handler)
 
 	mux.Handle("/os", wrapped)
+
+
+	//middlewareチェーン
+	wrapped1 := middleware.UserAgentMiddleWare(handler)
+	wrapped2 := middleware.LoggingMiddleware(wrapped1)
+	wrapped3 := middleware.Recovery(wrapped2)
+
+	mux.Handle("/test", wrapped3)
 
 	return mux
 }
