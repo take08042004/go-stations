@@ -13,8 +13,9 @@ import (
 func main() {
 	err := realMain()
 	if err != nil {
-		log.Fatalln("main: failed to exit successfully, err =", err)
+		log.Println("ERROR:", err)
 	}
+	log.Println("program exited")
 }
 
 func realMain() error {
@@ -53,14 +54,11 @@ func realMain() error {
 
 	mux := router.NewRouter(todoDB)
 
-	log.Println("listening on", port)
+	log.Println("calling ListenAndServe...")
 
 	// TODO: サーバーをlistenする
 
 	err = http.ListenAndServe(port,mux)
-	if err != nil {
-		log.Println("server error:", err)
-	}
-
+	log.Println("ListenAndServe returned", err)
 	return err
 }
