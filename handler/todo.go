@@ -35,19 +35,23 @@ func (h *TODOHandler) Create(ctx context.Context, req *model.CreateTODORequest) 
 
 // Read handles the endpoint that reads the TODOs.
 func (h *TODOHandler) Read(ctx context.Context, req *model.ReadTODORequest) (*model.ReadTODOResponse, error) {
-	_, _ = h.svc.ReadTODO(ctx, 0, 0)
-	return &model.ReadTODOResponse{}, nil
+	todos, nil := h.svc.ReadTODO(ctx, req.PrevID, req.Size)
+	return &model.ReadTODOResponse{
+		TODOs: todos,
+	}, nil
 }
 
 // Update handles the endpoint that updates the TODO.
 func (h *TODOHandler) Update(ctx context.Context, req *model.UpdateTODORequest) (*model.UpdateTODOResponse, error) {
-	_, _ = h.svc.UpdateTODO(ctx, 0, "", "")
-	return &model.UpdateTODOResponse{}, nil
+	todo, nil := h.svc.UpdateTODO(ctx, req.ID, req.Subject, req.Description)
+	return &model.UpdateTODOResponse{
+		TODO: *todo,
+	}, nil
 }
 
 // Delete handles the endpoint that deletes the TODOs.
 func (h *TODOHandler) Delete(ctx context.Context, req *model.DeleteTODORequest) (*model.DeleteTODOResponse, error) {
-	_ = h.svc.DeleteTODO(ctx, nil)
+	_ = h.svc.DeleteTODO(ctx, req.IDs)
 	return &model.DeleteTODOResponse{}, nil
 }
 
