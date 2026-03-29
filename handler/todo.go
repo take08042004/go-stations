@@ -26,7 +26,10 @@ func NewTODOHandler(svc *service.TODOService) *TODOHandler {
 
 // Create handles the endpoint that creates the TODO.
 func (h *TODOHandler) Create(ctx context.Context, req *model.CreateTODORequest) (*model.CreateTODOResponse, error) {
-	todo, nil := h.svc.CreateTODO(ctx, req.Subject, req.Description)
+	todo, err := h.svc.CreateTODO(ctx, req.Subject, req.Description)
+	if err != nil {
+		return nil, err
+	}
 
 	return &model.CreateTODOResponse{
 		TODO: *todo,
@@ -35,7 +38,10 @@ func (h *TODOHandler) Create(ctx context.Context, req *model.CreateTODORequest) 
 
 // Read handles the endpoint that reads the TODOs.
 func (h *TODOHandler) Read(ctx context.Context, req *model.ReadTODORequest) (*model.ReadTODOResponse, error) {
-	todos, nil := h.svc.ReadTODO(ctx, req.PrevID, req.Size)
+	todos, err := h.svc.ReadTODO(ctx, req.PrevID, req.Size)
+	if err != nil {
+		return nil, err
+	}
 	return &model.ReadTODOResponse{
 		TODOs: todos,
 	}, nil
@@ -43,7 +49,10 @@ func (h *TODOHandler) Read(ctx context.Context, req *model.ReadTODORequest) (*mo
 
 // Update handles the endpoint that updates the TODO.
 func (h *TODOHandler) Update(ctx context.Context, req *model.UpdateTODORequest) (*model.UpdateTODOResponse, error) {
-	todo, nil := h.svc.UpdateTODO(ctx, req.ID, req.Subject, req.Description)
+	todo, err := h.svc.UpdateTODO(ctx, req.ID, req.Subject, req.Description)
+	if err != nil {
+		return nil, err
+	}
 	return &model.UpdateTODOResponse{
 		TODO: *todo,
 	}, nil
