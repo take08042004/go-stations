@@ -20,7 +20,7 @@ func main() {
 func realMain() error {
 	// config values
 	const (
-		defaultPort   = ":8010"
+		defaultPort   = ":8080"
 		defaultDBPath = ".sqlite3/todo.db"
 	)
 
@@ -57,5 +57,10 @@ func realMain() error {
 
 	// TODO: サーバーをlistenする
 
-	return http.ListenAndServe(port,mux)
+	err = http.ListenAndServe(port,mux)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+
+	return err
 }
