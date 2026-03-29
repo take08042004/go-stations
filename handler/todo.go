@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"math"
 
 	"github.com/TechBowl-japan/go-stations/model"
 	"github.com/TechBowl-japan/go-stations/service"
@@ -79,7 +78,11 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		todo, _ := h.svc.CreateTODO(r.Context(), req.Subject, req.Description)
+		todo, err := h.svc.CreateTODO(r.Context(), req.Subject, req.Description)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-type", "application/json")
 
@@ -104,6 +107,7 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		todo, err := h.svc.UpdateTODO(r.Context(), req.ID, req.Subject, req.Description)
+		
 
 		if err != nil {
 			if _, ok := err.(*model.ErrNotFound); ok {
@@ -126,7 +130,7 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodGet:
 		var prevID int64 = 0
-		var size int64 = math.MaxInt64
+		var size int64 = 100
 		var err error
 
 		q := r.URL.Query()
