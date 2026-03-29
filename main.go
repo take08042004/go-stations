@@ -20,7 +20,7 @@ func main() {
 func realMain() error {
 	// config values
 	const (
-		defaultPort   = ":8080"
+		defaultPort   = ":8010"
 		defaultDBPath = ".sqlite3/todo.db"
 	)
 
