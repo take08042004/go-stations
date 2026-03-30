@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 	"fmt"
+	"os"
 
 	"github.com/mileusna/useragent"
 )
@@ -94,5 +95,27 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		}
 
 		fmt.Println(string(jsonData))
+	})
+}
+
+func BasicAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userId, password, ok := r.BasicAuth()
+
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		expectedUserId := os.Getenv("BASIC_AUTH_USER_ID")
+		expectedPassword := os.Getenv("BASIC_AUTH_PASSWORD")
+
+		if userId != expectedUserId || password != expectedPassword {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w,r)
+
 	})
 }

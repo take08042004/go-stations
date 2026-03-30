@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	os.Setenv("BASIC_AUTH_USER_ID", "4649")
+	os.Setenv("BASIC_AUTH_PASSWORD", "0804")
 	err := realMain()
 	if err != nil {
 		log.Println("ERROR:", err)
