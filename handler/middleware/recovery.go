@@ -103,6 +103,7 @@ func BasicAuthMiddleware(next http.Handler) http.Handler {
 		userId, password, ok := r.BasicAuth()
 
 		if !ok {
+			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -111,6 +112,7 @@ func BasicAuthMiddleware(next http.Handler) http.Handler {
 		expectedPassword := os.Getenv("BASIC_AUTH_PASSWORD")
 
 		if userId != expectedUserId || password != expectedPassword {
+			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
