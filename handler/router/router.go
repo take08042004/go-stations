@@ -20,7 +20,13 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 
 	todoHandler := handler.NewTODOHandler(todoService)
 
-	protected := middleware.BasicAuthMiddleware(todoHandler)
+	protected := middleware.Recovery(
+		middleware.LoggingMiddleware(
+			middleware.UserAgentMiddleWare(
+				middleware.BasicAuthMiddleware(todoHandler),
+			),
+		),
+	)
 
 	mux.Handle("/todos", protected)
 
