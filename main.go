@@ -5,8 +5,7 @@ import (
 	"os"
 	"time"
 	"net/http"
-	"fmt"
-	"strings"
+
 
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
@@ -18,13 +17,6 @@ func main() {
 		log.Println("ERROR:", err)
 	}
 	log.Println("program exited")
-
-	fmt.Println()
-	for _, e := range os.Environ() {
-		pair := strings.Split(e, "=")
-		fmt.Println(pair[0])
-
-	}
 
 }
 
