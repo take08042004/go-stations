@@ -2,10 +2,12 @@ package main
 
 import (
 	"log"
-	"os"
-	"time"
 	"net/http"
-
+	"os"
+	"syscall"
+	"time"
+	"context"
+	"os/signal"
 
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
@@ -60,7 +62,31 @@ func realMain() error {
 
 	// TODO: サーバーをlistenする
 
-	err = http.ListenAndServe(port,mux)
-	log.Println("ListenAndServe returned", err)
+	server := &http.Server{
+		Addr:	port,
+		Handler: mux,
+	}
+
+	ctx,stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		log.Println("server started on", port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Println("listen error:", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Println("shutdown signal received")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Println("shutdown error:", err)
+	}
+
+	log.Println("server gracefully stopped")
 	return err
 }
