@@ -1,37 +1,64 @@
-# 環境構築
+# go-stations
 
-1. Node.js（v18以降を推奨します。）
-2. Yarn (v1)
-3. Git
-4. Visual Studio Code（VSCode）
-5. Railway VSCode 拡張機能
+## 概要
+Go言語を用いて実装したWeb APIサーバです。  
+DBを利用したTODO管理機能に加え、Middleware機構によるログ出力やPanic Recoveryなど、実運用を意識した設計を行っています。
 
-上記をインストールする必要があります。インストールできているかの確認やインストール方法は、
-[Railway 準備編](https://www.notion.so/techbowl/Railway-ceba695d5014460e9733c2a46318cdec) をご確認いただき、挑戦の準備をしましょう。※ GitHub Codespaces についての資料はスキップしてください。
+「単に動作するアプリ」ではなく、**保守性・拡張性を考慮したバックエンド設計の理解**を目的として開発しました。
 
-## トラブルシューティング
+---
 
-### go test で 404 というエラーが返ってきます。
+## 主な機能
 
-main.goなどで handler の登録を確認してみましょう。
-テストの関係上 router.NewRouter のメソッド内部で追加するようにしましょう。
+- TODOのCRUD API
+- データベースによるデータ永続化
+- Middlewareによるリクエストログ出力
+- Panic Recovery（サーバのクラッシュ防止）
+- 環境情報（OSなど）の取得API
 
-### DBに接続して中身が見れないのですが？
+---
 
-次のような結果が返ってきていれば、正常です。
+## 工夫した点
 
-```
-$ sqlite3 .sqlite3/todo.db
-SQLite version 3.32.3 2020-06-18 14:16:19
-Enter ".help" for usage hints.
-sqlite> .tables
-todos
-```
+### ① Middlewareによる関心の分離
+ログ出力やエラーハンドリングといった横断的関心を、handlerから分離しました。  
+これにより、コードの可読性と再利用性を向上させています。
 
-もし、 `todos` が作成されていないようであれば、次のコマンドを実行しましょう。
+---
 
-```
-$ sqlite3 .sqlite3/todo.db < db/schema.sql
-```
+### ② レイヤ構造の設計
+以下のように責務ごとにディレクトリを分割しています。
 
-これで、 `todos` が作成されていれば、問題なく接続できます。
+/handler // HTTPリクエスト処理
+/router // ルーティング定義
+/db // DB操作
+/middleware // 共通処理
+
+これにより、機能追加時の影響範囲を限定し、保守しやすい構成としています。
+
+---
+
+### ③ 標準ライブラリ中心の実装
+`net/http` を用いてサーバを構築し、フレームワークに依存しない設計とすることで、HTTP処理の基礎理解を重視しました。
+
+---
+
+### ④ Panic Recoveryの実装
+`defer` と `recover()` を用いて、サーバがクラッシュせずにエラーレスポンスを返せるよう設計しています。
+
+---
+
+## 技術スタック
+
+- Go
+- net/http
+- （使用していれば）SQLite / MySQL など
+
+---
+
+## セットアップ方法
+
+```bash
+git clone https://github.com/take08042004/go-stations.git
+cd go-stations
+go run main.go
