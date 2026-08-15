@@ -44,8 +44,8 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 
 
 	//middlewareチェーン
-	wrapped1 := middleware.UserAgentMiddleWare(handler)
-	wrapped2 := middleware.LoggingMiddleware(wrapped1)
+	wrapped1 := middleware.LoggingMiddleware(handler)
+	wrapped2 := middleware.UserAgentMiddleWare(wrapped1)
 	wrapped3 := middleware.Recovery(wrapped2)
 
 	mux.Handle("/test", wrapped3)
