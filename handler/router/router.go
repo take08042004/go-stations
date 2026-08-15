@@ -21,8 +21,8 @@ func NewRouter(todoDB *sql.DB) *http.ServeMux {
 	todoHandler := handler.NewTODOHandler(todoService)
 
 	protected := middleware.Recovery(
-		middleware.LoggingMiddleware(
-			middleware.UserAgentMiddleWare(
+		middleware.UserAgentMiddleWare(
+			middleware.LoggingMiddleware(
 				middleware.BasicAuthMiddleware(todoHandler),
 			),
 		),
